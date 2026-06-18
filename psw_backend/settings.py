@@ -80,12 +80,12 @@ if 'DATABASE_URL' in os.environ:
     DATABASES['default'] = dj_database_url.config(conn_max_age=600)
 
 # ======================
-# CLOUDINARY CONFIGURATION
+# CLOUDINARY CONFIGURATION (FIXED)
 # ======================
 cloudinary.config(
-    cloud_name=os.getenv('dme4c6ca2'),
-    api_key=os.getenv('693435477876531'),
-    api_secret=os.getenv('RTc5-JDpPh1XSsDYsSyi_s_-yHI')
+    cloud_name=os.getenv('CLOUDINARY_CLOUD_NAME'),
+    api_key=os.getenv('CLOUDINARY_API_KEY'),
+    api_secret=os.getenv('CLOUDINARY_API_SECRET')
 )
 
 # Use Cloudinary as the default file storage backend
