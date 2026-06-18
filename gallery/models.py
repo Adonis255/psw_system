@@ -23,3 +23,17 @@ class PurchaseLog(models.Model):
     
     def __str__(self):
         return f"{self.session_key} - {self.item.title}"
+    
+photo_price = models.DecimalField(
+    max_digits=10, 
+    decimal_places=2, 
+    default=0.00,
+    help_text="Price in Kenyan Shillings (KSH)"
+)
+
+phone_price = models.DecimalField(
+    max_digits=10, 
+    decimal_places=2, 
+    default=0.00,
+    help_text="Price in Kenyan Shillings (KSH)"
+)
