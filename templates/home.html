@@ -33,10 +33,8 @@
     </style>
 </head>
 <body>
-
     <h1 style="text-align:center;">📸 PSW Marketplace</h1>
     <p style="text-align:center; color:#aaa;">Pay to unblur photos & unlock phone numbers</p>
-
     <div class="grid" id="galleryGrid">
         {% for item in items %}
         <div class="card" data-id="{{ item.id }}">
@@ -47,7 +45,6 @@
             </div>
             <h3>{{ item.title }}</h3>
             <p style="color:#aaa; font-size:0.9rem;">{{ item.description|truncatechars:60 }}</p>
-            
             <div>
                 <span class="price-tag">🖼️ KSh {{ item.photo_price }}</span>
                 {% if item.id in unlocked_photos %}
@@ -57,7 +54,6 @@
                     <button class="btn pay-btn" data-id="{{ item.id }}" data-type="photo">🔓 Unlock Photo</button>
                 {% endif %}
             </div>
-
             {% if item.phone_number %}
             <div class="phone-box">
                 <strong>📞 Number:</strong> 
@@ -76,29 +72,21 @@
         <p style="grid-column:1/-1; text-align:center; color:#666;">No items yet. <a href="/admin" style="color:#00d4ff;">Login as Admin</a> to upload.</p>
         {% endfor %}
     </div>
-
     <a href="/admin" class="admin-link">👑 Admin Panel</a>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Handle Pay Buttons (Photo & Number)
             document.querySelectorAll('.pay-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const itemId = this.dataset.id;
                     const type = this.dataset.type;
-                    
-                    // Get the price from the card
                     const card = document.querySelector(`.card[data-id="${itemId}"]`);
                     const priceTag = card.querySelector('.price-tag');
-                    let priceText = priceTag ? priceTag.textContent.trim() : '0';
-                    // Extract just the number (remove "KSh" or "$")
-                    const price = priceText.replace(/[^0-9.]/g, '');
+                    const price = priceTag.textContent.replace(/[^0-9.]/g, '');
                     
-                    // Show "Processing..." state
                     this.textContent = 'Processing...';
                     this.disabled = true;
                     
-                    // Send fake payment request
                     fetch('/fake-pay/', {
                         method: 'POST',
                         headers: {
@@ -110,7 +98,6 @@
                     .then(res => res.json())
                     .then(data => {
                         if (data.success) {
-                            // 🎉 SHOW M-PESA POPUP MODAL
                             showMpesaPopup(itemId, type, price);
                         }
                     })
@@ -121,7 +108,6 @@
                 });
             });
 
-            // Handle Download Buttons
             document.querySelectorAll('.download-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const itemId = this.dataset.id;
@@ -137,11 +123,7 @@
                 });
             });
 
-            // ========================================
-            // M-PESA POPUP FUNCTION
-            // ========================================
             function showMpesaPopup(itemId, type, price) {
-                // Create overlay
                 const overlay = document.createElement('div');
                 overlay.id = 'mpesa-overlay';
                 overlay.style.cssText = `
@@ -158,49 +140,29 @@
                     font-family: Arial, sans-serif;
                     animation: fadeIn 0.3s ease;
                 `;
-
-                // Create modal
                 overlay.innerHTML = `
-                    <div style="
-                        background: white;
-                        padding: 30px 25px 25px 25px;
-                        border-radius: 20px;
-                        max-width: 340px;
-                        width: 92%;
-                        text-align: center;
-                        box-shadow: 0 25px 80px rgba(0,0,0,0.6);
-                        animation: slideUp 0.4s ease;
-                        position: relative;
-                    ">
+                    <div style="background: white; padding: 30px 25px; border-radius: 20px; max-width: 340px; width: 92%; text-align: center; box-shadow: 0 25px 80px rgba(0,0,0,0.6);">
                         <div style="font-size: 50px; margin-bottom: 8px;">📱</div>
-                        <h2 style="color: #00a651; margin: 0 0 2px 0; font-size: 22px; font-weight: 700; letter-spacing: -0.5px;">M-PESA</h2>
-                        <p style="color: #888; margin: 0 0 18px 0; font-size: 13px; font-weight: 500;">Confirm Payment</p>
-
+                        <h2 style="color: #00a651; margin: 0 0 2px 0; font-size: 22px; font-weight: 700;">M-PESA</h2>
+                        <p style="color: #888; margin: 0 0 18px 0; font-size: 13px;">Confirm Payment</p>
                         <div style="background: #f8f9fa; padding: 14px; border-radius: 12px; margin-bottom: 18px; border: 1px solid #e9ecef;">
-                            <p style="margin: 0; color: #666; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Amount</p>
+                            <p style="margin: 0; color: #666; font-size: 11px; text-transform: uppercase;">Amount</p>
                             <p style="margin: 4px 0 0 0; font-size: 28px; font-weight: 800; color: #00a651;">KSh ${price}</p>
                             <p style="margin: 4px 0 0 0; color: #999; font-size: 12px;">Pay to: <strong>PSW Marketplace</strong></p>
                         </div>
-
                         <div style="background: #e8f5e9; padding: 8px 12px; border-radius: 20px; display: inline-block; margin-bottom: 18px;">
                             <span style="color: #2e7d32; font-size: 12px; font-weight: 600;">${type === 'photo' ? '🖼️ Unlock Photo' : '📞 Buy Number'}</span>
                         </div>
-
                         <div style="display: flex; gap: 10px;">
-                            <button onclick="closeMpesaPopup()" style="flex:1; padding: 14px; border: none; border-radius: 12px; background: #e9ecef; color: #495057; font-weight: 700; font-size: 14px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#dee2e6'" onmouseout="this.style.background='#e9ecef'">Cancel</button>
-                            <button onclick="confirmMpesaPayment('${itemId}', '${type}')" style="flex:1; padding: 14px; border: none; border-radius: 12px; background: #00a651; color: white; font-weight: 700; font-size: 14px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(0, 166, 81, 0.3);" onmouseover="this.style.background='#008f45'" onmouseout="this.style.background='#00a651'">Confirm ✅</button>
+                            <button onclick="closeMpesaPopup()" style="flex:1; padding: 14px; border: none; border-radius: 12px; background: #e9ecef; color: #495057; font-weight: 700; cursor: pointer;">Cancel</button>
+                            <button onclick="confirmMpesaPayment('${itemId}', '${type}')" style="flex:1; padding: 14px; border: none; border-radius: 12px; background: #00a651; color: white; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(0,166,81,0.3);">Confirm ✅</button>
                         </div>
                         <p style="margin: 14px 0 0 0; font-size: 11px; color: #aaa;">Enter your M-PESA PIN to complete payment</p>
                     </div>
                 `;
-
                 document.body.appendChild(overlay);
-
                 const style = document.createElement('style');
-                style.textContent = `
-                    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-                    @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-                `;
+                style.textContent = `@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }`;
                 document.head.appendChild(style);
             }
 
@@ -211,7 +173,6 @@
 
             window.confirmMpesaPayment = function(itemId, type) {
                 closeMpesaPopup();
-
                 const successMsg = document.createElement('div');
                 successMsg.style.cssText = `
                     position: fixed;
@@ -224,7 +185,6 @@
                     z-index: 99999;
                     text-align: center;
                     box-shadow: 0 25px 80px rgba(0,0,0,0.5);
-                    animation: slideUp 0.4s ease;
                     max-width: 320px;
                     width: 90%;
                 `;
@@ -233,10 +193,9 @@
                     <h3 style="color: #00a651; margin: 0 0 5px 0; font-size: 20px;">Payment Successful!</h3>
                     <p style="color: #666; margin: 0 0 15px 0; font-size: 14px;">${type === 'photo' ? '🖼️ Photo unlocked!' : '📞 Number unlocked!'}</p>
                     <p style="color: #999; font-size: 12px; margin: 0 0 20px 0;">M-PESA Confirmation: <strong>#PSW${Math.floor(100000 + Math.random() * 900000)}</strong></p>
-                    <button onclick="this.closest('div').remove(); location.reload();" style="padding: 12px 40px; border: none; border-radius: 12px; background: #00a651; color: white; font-weight: 700; font-size: 15px; cursor: pointer; box-shadow: 0 4px 12px rgba(0, 166, 81, 0.3);" onmouseover="this.style.background='#008f45'" onmouseout="this.style.background='#00a651'">Continue</button>
+                    <button onclick="this.closest('div').remove(); location.reload();" style="padding: 12px 40px; border: none; border-radius: 12px; background: #00a651; color: white; font-weight: 700; cursor: pointer;">Continue</button>
                 `;
                 document.body.appendChild(successMsg);
-
                 setTimeout(() => {
                     if (document.body.contains(successMsg)) {
                         successMsg.remove();
