@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PSW - Photos & Numbers</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * { box-sizing: border-box; font-family: Arial, sans-serif; }
+        body { background: #0b0b0b; color: white; padding: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; max-width: 1400px; margin: 0 auto; }
+        .card { background: #1a1a1a; border-radius: 12px; padding: 15px; border: 1px solid #333; }
+        .card h3 { margin: 10px 0 5px; font-size: 1.2rem; }
+        .price-tag { color: #00d4ff; font-weight: bold; }
+        .image-wrapper { position: relative; width: 100%; padding-bottom: 100%; background: #222; border-radius: 8px; overflow: hidden; }
+        .image-wrapper img { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; 
+            transition: filter 0.5s ease;
+        }
+        .blurred { filter: blur(25px); pointer-events: none; }
+        .unblurred { filter: blur(0px); }
+        .btn { 
+            background: #00d4ff; color: #000; border: none; padding: 10px 16px; 
+            border-radius: 8px; font-weight: bold; cursor: pointer; 
+            margin: 5px 5px 0 0; transition: 0.2s;
+        }
+        .btn:hover { transform: scale(1.03); opacity: 0.9; }
+        .btn-dark { background: #333; color: white; }
+        .btn-success { background: #00c853; color: white; }
+        .btn-danger { background: #ff1744; color: white; }
+        .phone-box { margin-top: 12px; padding: 10px; background: #111; border-radius: 8px; border-left: 3px solid #00d4ff; }
+        .unlocked-badge { color: #00c853; font-weight: bold; margin-left: 10px; }
+        .admin-link { position: fixed; bottom: 20px; right: 20px; background: #ff6d00; color: white; padding: 12px 20px; border-radius: 30px; text-decoration: none; font-weight: bold; z-index: 999; }
+        .admin-link:hover { background: #e65100; }
+    </style>
+</head>
+<body>
+
+    <h1 style="text-align:center;">📸 PSW Marketplace</h1>
+    <p style="text-align:center; color:#aaa;">Pay to unblur photos & unlock phone numbers</p>
+
+    <div class="grid" id="galleryGrid">
+        {% for item in items %}
+        <div class="card" data-id="{{ item.id }}">
+            <div class="image-wrapper">
+                <img src="{{ item.image.url }}" 
+                     class="{% if item.id in unlocked_photos %}unblurred{% else %}blurred{% endif %}" 
+                     alt="{{ item.title }}">
+            </div>
+            <h3>{{ item.title }}</h3>
+            <p style="color:#aaa; font-size:0.9rem;">{{ item.description|truncatechars:60 }}</p>
+            
+            <div>
+                <span class="price-tag">🖼️ ${{ item.photo_price }}</span>
+                {% if item.id in unlocked_photos %}
+                    <span class="unlocked-badge">✅ Unlocked</span>
+                    <button class="btn btn-success download-btn" data-id="{{ item.id }}">⬇️ Download</button>
+                {% else %}
+                    <button class="btn pay-btn" data-id="{{ item.id }}" data-type="photo">🔓 Unlock Photo</button>
+                {% endif %}
+            </div>
+
+            {% if item.phone_number %}
+            <div class="phone-box">
+                <strong>📞 Number:</strong> 
+                {% if item.id in unlocked_numbers %}
+                    <span style="color:#00c853; font-size:1.1rem;">{{ item.phone_number }}</span>
+                    <button class="btn btn-dark" onclick="navigator.clipboard.writeText('{{ item.phone_number }}')">📋 Copy</button>
+                {% else %}
+                    <span style="color:#ff5252;">🔒 Hidden</span>
+                    <span class="price-tag">💰 ${{ item.phone_price }}</span>
+                    <button class="btn pay-btn" data-id="{{ item.id }}" data-type="number">🔓 Buy Number</button>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+        {% empty %}
+        <p style="grid-column:1/-1; text-align:center; color:#666;">No items yet. <a href="/admin" style="color:#00d4ff;">Login as Admin</a> to upload.</p>
+        {% endfor %}
+    </div>
+
+    <a href="/admin" class="admin-link">👑 Admin Panel</a>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.pay-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const itemId = this.dataset.id;
+                    const type = this.dataset.type;
+                    
+                    this.textContent = 'Processing...';
+                    this.disabled = true;
+                    
+                    fetch('/fake-pay/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        body: JSON.stringify({ item_id: itemId, type: type })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert(`✅ ${type === 'photo' ? 'Photo' : 'Number'} Unlocked! Refreshing...`);
+                            location.reload();
+                        }
+                    })
+                    .catch(err => {
+                        alert('Error! But this is fake payment, try again.');
+                        location.reload();
+                    });
+                });
+            });
+
+            document.querySelectorAll('.download-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const itemId = this.dataset.id;
+                    fetch(`/download/${itemId}/`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.image_url) {
+                                window.open(data.image_url, '_blank');
+                            } else {
+                                alert('You need to unlock this photo first!');
+                            }
+                        });
+                });
+            });
+        });
+    </script>
+</body>
+</html>
