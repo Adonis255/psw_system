@@ -7,3 +7,6 @@ services:
       python manage.py migrate
       echo "from django.contrib.auth.models import User; User.objects.create_superuser('MERCY', 'mercy254255@gmail.com', 'sucre123') if not User.objects.filter(username='MERCY').exists() else None" | python manage.py shell
     startCommand: gunicorn psw_backend.wsgi:application
+    envVars:
+      - key: DISABLE_COLLECTSTATIC
+        value: 1
