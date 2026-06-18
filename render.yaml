@@ -4,3 +4,8 @@ services:
     env: python
     buildCommand: ./build.sh
     startCommand: gunicorn psw_backend.wsgi:application
+    envVars:
+      - key: DISABLE_COLLECTSTATIC
+        value: 1
+      - key: PYTHONUNBUFFERED
+        value: 1
